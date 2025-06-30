@@ -5,7 +5,7 @@ clear                   % 清空变量
 clc                     % 清空命令行
 
 %%  读取数据
-res = xlsread('Rock_iden3.xlsx');
+res = xlsread('Data_Original.xlsx');
 %res = res(5e3:1e4,:);
 %res(:,10)=[];
 
@@ -52,8 +52,8 @@ xyPoints = [x y];
 
 
 % RANSAC直线拟合
-sampleSize = 2; % 每次采样的点数，直线为2
-maxDistance = 0.005; % 内点到模型的最大距离
+sampleSize = 20; % 每次采样的点数，直线为2
+maxDistance = 500; % 内点到模型的最大距离
 fitLineFcn = @(xyPoints) polyfit(xyPoints(:,1),xyPoints(:,2),1); % 拟合方式采用 polyfit，这里不可以用x,y替换xyPoints(:,1)，xyPoints(:,2)
 evalLineFcn =  @(model, xyPoints) sum((y - polyval(model, x)).^2,2);% 距离估算函数
 [modelRANSAC, inlierIdx] = ransac(xyPoints,fitLineFcn,evalLineFcn,sampleSize,maxDistance);% 执行RANSAC直线拟合，提取内点索引
