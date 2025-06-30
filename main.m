@@ -5,7 +5,7 @@ clear                   % 清空变量
 clc                     % 清空命令行
 
 %%  读取数据
-res = xlsread('延安油田总数居.csv');
+res = xlsread('Data_Model.xlsx');
 
 %%  分析数据
 num_class = length(unique(res(:, end)));  % 类别数（Excel最后一列放类别）
@@ -213,50 +213,3 @@ if flag_conusion == 1
 end
 
 
-save net;
-save ps_input;
-
-% 假设原始测试数据为 P_test，维度为 [num_dim, 1, 1, N]
-% t_test 为真实标签
-
-fprintf('\n--- Sensitivity Analysis ---\n');
-perturb_rates = [-0.15, -0.10, -0.05, 0.05, 0.10, 0.15];  % 扰动比例
-feature_names = {'AC', 'CAL', 'GR', 'K', 'RD', 'SP'};   % 举例，可根据实际参数修改
-
-% 遍历每个输入特征维度（行）
-for feat_id = 1 : size(P_test,1)
-    fprintf('\nFeature: %s\n', feature_names{feat_id});
-    for pr = perturb_rates
-        % 拷贝原始测试数据
-        P_mod = P_test;
-        
-        % 应用扰动：该特征每个样本值乘以(1 + pr)
-        P_mod(feat_id, :, :, :) = P_mod(feat_id, :, :, :) * (1 + pr);
-        
-        % 转换为 LSTM 网络输入格式
-        for i = 1 : size(P_mod, 4)
-            p_mod_input{i, 1} = double(P_mod(:, :, 1, i));
-        end
-        
-        % 预测与准确率评估
-        t_pred = classify(net, p_mod_input);
-        acc = sum(t_pred == t_test) / length(t_test) * 100;
-        
-        fprintf('  Perturb %+d%% → Accuracy: %.2f%%\n', round(pr*100), acc);
-    end
-end
-
-
-
-% 训练网络并获取训练信息
-%[net, info] = trainNetwork(p_train, t_train, lgraph, options);
-
-% 访问训练信息
-%epochs = 1:numel(info.TrainingAccuracy); % 这是一个示例，假设每个epoch都有记录
-%trainingAccuracy = info.TrainingAccuracy;
-%validationAccuracy = info.ValidationAccuracy;
-%trainingLoss = info.TrainingLoss;
-%validationLoss = info.ValidationLoss;
-
-% 将数据保存到文件
-%save('training_info.mat', 'epochs', 'trainingAccuracy', 'validationAccuracy', 'trainingLoss', 'validationLoss');
